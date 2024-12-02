@@ -12,6 +12,8 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 private const val COMPLETE_ANGLE = 360
+
+
 class SpinWheelView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -37,7 +39,7 @@ class SpinWheelView @JvmOverloads constructor(
 
         setBackgroundColor(Color.TRANSPARENT)
 
-        addDefaultSector()
+        addDefaultSector() // Ensure default sector is added with label.
     }
 
     private fun addDefaultSector() {
@@ -46,10 +48,11 @@ class SpinWheelView @JvmOverloads constructor(
             (0..255).random(),
             (0..255).random()
         )
-        val defaultSector = SectorModel(randomColor, null)
+        val defaultLabel = "Default Sector"  // Assign a label to the default sector
+        val defaultSector = SectorModel(randomColor, defaultLabel)  // Add label here
         sectors.add(defaultSector)
         angleEnclosedBySector = COMPLETE_ANGLE / sectors.size
-        requestLayout()
+        requestLayout() // Recalculate layout after adding the default sector
     }
 
     private fun init(
@@ -78,7 +81,7 @@ class SpinWheelView @JvmOverloads constructor(
         val newSector = SectorModel(randomColor, label)
         sectors.add(newSector)
         angleEnclosedBySector = COMPLETE_ANGLE / sectors.size
-        requestLayout()
+        requestLayout() // Recalculate layout after adding a new sector
     }
 
     private var currentRotation = 0f
@@ -119,6 +122,7 @@ class SpinWheelView @JvmOverloads constructor(
             paint?.color = sector.color
             canvas.drawArc(0f, 0f, width.toFloat(), height.toFloat(), sectorAngle, angleEnclosedBySector.toFloat(), true, paint!!)
 
+            // Draw the label for each sector, including the default one
             sector.label?.let {
                 canvas.drawText(it, x, y, textPaint)
             }
@@ -149,7 +153,7 @@ class SpinWheelView @JvmOverloads constructor(
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         val width = MeasureSpec.getSize(widthMeasureSpec)
         val height = MeasureSpec.getSize(heightMeasureSpec)
-        setMeasuredDimension(width, width)
+        setMeasuredDimension(width, width) // Make the width equal to height to ensure it's circular
         radius = width / 2.0f
 
         if (!isInit && sectors.isNotEmpty()) {
@@ -178,3 +182,4 @@ class SpinWheelView @JvmOverloads constructor(
         }
     }
 }
+
