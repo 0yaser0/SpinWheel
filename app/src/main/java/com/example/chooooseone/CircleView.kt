@@ -1,15 +1,11 @@
 package com.example.chooooseone
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Paint.Style.FILL
-import android.graphics.Path
+import android.graphics.*
 import android.util.AttributeSet
-import android.view.Gravity
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -19,99 +15,92 @@ class CircleView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    private val fillPaint: Paint = Paint().apply {
-        style = FILL
+    private val fillPaint = Paint().apply {
+        style = Paint.Style.FILL
         isAntiAlias = true
     }
 
-    private val borderPaint: Paint = Paint().apply {
+    private val borderPaint = Paint().apply {
         style = Paint.Style.STROKE
         color = Color.BLUE
         strokeWidth = 10f
         isAntiAlias = true
     }
 
-    private val arrowPaint: Paint = Paint().apply {
-        style = FILL
+    private val arrowPaint = Paint().apply {
+        style = Paint.Style.FILL
         color = Color.RED
         isAntiAlias = true
     }
 
-    private var textView: TextView = TextView(context).apply {
-        gravity = Gravity.CENTER
+    private val textView: TextView = TextView(context).apply {
+        gravity = android.view.Gravity.CENTER
         setTextColor(Color.BLACK)
     }
 
-    private var radius: Float = 0f
-    private var angle: Int = 0
+    private var radius = 0f
+    private var angle = 0
 
     init {
         setBackgroundColor(Color.TRANSPARENT)
 
-        addView(textView, LayoutParams(
-            LayoutParams.WRAP_CONTENT,
-            LayoutParams.WRAP_CONTENT
-        ).apply {
-            topToTop = LayoutParams.PARENT_ID
-            bottomToBottom = LayoutParams.PARENT_ID
-            startToStart = LayoutParams.PARENT_ID
-            endToEnd = LayoutParams.PARENT_ID
-        })
+        addView(
+            textView, LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT
+            ).apply {
+                topToTop = LayoutParams.PARENT_ID
+                bottomToBottom = LayoutParams.PARENT_ID
+                startToStart = LayoutParams.PARENT_ID
+                endToEnd = LayoutParams.PARENT_ID
+            }
+        )
     }
 
     fun init(
-        rotation: Float,
-        index: Int = 0,
         color: Int,
-        angle: Int,
-        radius: Float,
-        paddingLeftInDp: Int = 16,
-        paddingTopInDp: Int = 16,
-        paddingRightInDp: Int = 16,
-        paddingBottomInDp: Int = 16
+        segmentAngle: Int,
+        segmentRadius: Float,
     ) {
-        this.rotation = rotation
-        this.angle = angle
-        this.radius = radius
         fillPaint.color = color
-        textView.text = index.toString()
+        this.angle = segmentAngle
+        this.radius = segmentRadius
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val originX = width / 2f
-        val originY = height / 2f
+        val centerX = width / 2f
+        val centerY = height / 2f
 
+        drawSegment(canvas, centerX, centerY)
+        drawArrow(canvas, centerX, centerY)
+    }
+
+    private fun drawSegment(canvas: Canvas, centerX: Float, centerY: Float) {
         val path = Path()
-        path.moveTo(originX, originY)
+        path.moveTo(centerX, centerY)
 
         val halfAngle = Math.toRadians((angle / 2).toDouble())
-        val halfChordLength = radius * sin(halfAngle)
-        val verticalDistance = radius * cos(halfAngle)
+        val chordLength = radius * sin(halfAngle).toFloat()
+        val height = radius * cos(halfAngle).toFloat()
 
-        val startX = originX - halfChordLength.toFloat()
-        val startY = originY - verticalDistance.toFloat()
-        val endX = originX + halfChordLength.toFloat()
-        val endY = startY
+        val startX = centerX - chordLength
+        val startY = centerY - height
+        val endX = centerX + chordLength
+        val endY = centerY - height
 
         path.lineTo(startX, startY)
         path.arcTo(
-            originX - radius,
-            originY - radius,
-            originX + radius,
-            originY + radius,
-            -angle / 2f,
-            angle.toFloat(),
-            false
+            centerX - radius, centerY - radius,
+            centerX + radius, centerY + radius,
+            -angle / 2f, angle.toFloat(), false
         )
-        path.lineTo(originX, originY)
+        path.lineTo(centerX, centerY)
         path.close()
 
         canvas.drawPath(path, fillPaint)
         canvas.drawPath(path, borderPaint)
-
-        drawArrow(canvas, originX, originY)
     }
 
     private fun drawArrow(canvas: Canvas, centerX: Float, centerY: Float) {
@@ -120,10 +109,25 @@ class CircleView @JvmOverloads constructor(
         val arrowWidth = arrowLength / 2
 
         arrowPath.moveTo(centerX, centerY - radius)
-        arrowPath.lineTo(centerX - arrowWidth / 2, centerY - radius + arrowLength)  // Base gauche
-        arrowPath.lineTo(centerX + arrowWidth / 2, centerY - radius + arrowLength)  // Base droite
+        arrowPath.lineTo(centerX - arrowWidth / 2, centerY - radius + arrowLength)
+        arrowPath.lineTo(centerX + arrowWidth / 2, centerY - radius + arrowLength)
         arrowPath.close()
 
         canvas.drawPath(arrowPath, arrowPaint)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val height = MeasureSpec.getSize(heightMeasureSpec)
+        setMeasuredDimension(width, height)
+    }
+
+    companion object {
+        private fun calculateAngle(centerX: Float, centerY: Float, pointX: Float, pointY: Float): Float {
+            return Math.toDegrees(
+                atan2((pointY - centerY).toDouble(), (pointX - centerX).toDouble())
+            ).toFloat()
+        }
     }
 }

@@ -19,24 +19,23 @@ class SpinWheelView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ViewGroup(context, attrs, defStyleAttr) {
 
-    private var paint: Paint? = null
-    private var radius: Float? = null
+    private val paint: Paint = Paint().apply {
+        color = Color.parseColor("#1F56FF")
+        style = Paint.Style.FILL
+    }
+    private var radius: Float = 0f
     private var angleEnclosedBySector: Int = 0
-    private var circleViews: ArrayList<CircleView?> = arrayListOf()
-    private var sectors: MutableList<SectorModel> = mutableListOf()
+    private val circleViews: ArrayList<CircleView?> = arrayListOf()
+    private val sectors: MutableList<SectorModel> = mutableListOf()
 
     private var paddingLeftInDp: Int = 0
     private var paddingTopInDp: Int = 0
     private var paddingRightInDp: Int = 0
     private var paddingBottomInDp: Int = 0
     private var isInit: Boolean = false
+    private var currentRotation = 0f
 
     init {
-        paint = Paint().apply {
-            color = Color.parseColor("#1F56FF")
-            style = Paint.Style.FILL
-        }
-
         setBackgroundColor(Color.TRANSPARENT)
     }
 
@@ -67,6 +66,7 @@ class SpinWheelView @JvmOverloads constructor(
         this.paddingTopInDp = paddingTopInDp
         this.paddingRightInDp = paddingRightInDp
         this.paddingBottomInDp = paddingBottomInDp
+        requestLayout()
     }
 
     fun addSector(label: String?) {
@@ -81,7 +81,6 @@ class SpinWheelView @JvmOverloads constructor(
         requestLayout()
     }
 
-    private var currentRotation = 0f
     fun spin() {
         val randomRotations = (3..6).random() * 360f
         val randomStopAngle = (0 until sectors.size).random() * angleEnclosedBySector
@@ -100,7 +99,7 @@ class SpinWheelView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (radius == null || paint == null) return
+        if (radius == 0f || sectors.isEmpty()) return
 
         for (i in sectors.indices) {
             val sector = sectors[i]
@@ -113,11 +112,11 @@ class SpinWheelView @JvmOverloads constructor(
                 textAlign = Paint.Align.CENTER
             }
 
-            val x = (width / 2f + radius!! * cos(angleInRadians) / 2).toFloat()
-            val y = (height / 2f + radius!! * sin(angleInRadians) / 2).toFloat()
+            val x = (width / 2f + radius * cos(angleInRadians) / 2).toFloat()
+            val y = (height / 2f + radius * sin(angleInRadians) / 2).toFloat()
 
-            paint?.color = sector.color
-            canvas.drawArc(0f, 0f, width.toFloat(), height.toFloat(), sectorAngle, angleEnclosedBySector.toFloat(), true, paint!!)
+            paint.color = sector.color
+            canvas.drawArc(0f, 0f, width.toFloat(), height.toFloat(), sectorAngle, angleEnclosedBySector.toFloat(), true, paint)
 
             sector.label?.let {
                 canvas.drawText(it, x, y, textPaint)
@@ -138,8 +137,8 @@ class SpinWheelView @JvmOverloads constructor(
             childView.layout(left, top, left + childWidth, top + childHeight)
 
             circleViews[i]?.rotation?.let {
-                childView.pivotX = radius!!
-                childView.pivotY = radius!!
+                childView.pivotX = radius
+                childView.pivotY = radius
                 childView.rotation = it
             }
         }
@@ -154,20 +153,13 @@ class SpinWheelView @JvmOverloads constructor(
         if (!isInit && sectors.isNotEmpty()) {
             isInit = true
 
-            for (i in 0 until sectors.size) {
+            for (i in sectors.indices) {
                 val circleView = CircleView(context).also {
                     it.init(
-                        22.5f + i * angleEnclosedBySector,
-                        i,
-                        sectors[i].color,
                         angleEnclosedBySector,
-                        radius!!,
-                        paddingLeftInDp,
-                        paddingTopInDp,
-                        paddingRightInDp,
-                        paddingBottomInDp
+                        i,
+                        radius
                     )
-
                     addView(it, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT))
                 }
 
@@ -176,4 +168,5 @@ class SpinWheelView @JvmOverloads constructor(
             }
         }
     }
+
 }
