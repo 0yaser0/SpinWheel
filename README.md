@@ -1,6 +1,11 @@
 # 🎡 Dynamic Spinner Android Application  
 
-> An interactive app for random name selection using a spinning wheel! 🎉  
+> An interactive app for random name selection using a spinning wheel! 🎉
+> 
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/dea8a6d6-5b73-4227-ac8d-2f2dc887f03c" alt="Screenshot" width="400"/>
+</div>
+
 
 ---
 
