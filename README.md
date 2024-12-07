@@ -45,7 +45,7 @@
 
 ## 👨‍💻 Author  
 - **Name:** Yaser  
-- **GitHub:** [Your Profile](https://github.com/0yaser0)  
+- **GitHub:** [0yaser0](https://github.com/0yaser0)  
 
 ---
 
